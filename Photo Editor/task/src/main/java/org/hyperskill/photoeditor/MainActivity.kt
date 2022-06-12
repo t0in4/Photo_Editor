@@ -12,6 +12,7 @@ import android.widget.Button
 import android.widget.ImageView
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
 import androidx.appcompat.app.AppCompatActivity
 
@@ -20,10 +21,8 @@ class MainActivity : AppCompatActivity() {
     private val button: Button by lazy {
         findViewById(R.id.btnGallery)
     }
-
     private lateinit var currentImage: ImageView
-    private val pickImage = 100
-    private var imageUri: Uri? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -32,24 +31,20 @@ class MainActivity : AppCompatActivity() {
         //do not change this line
         currentImage.setImageBitmap(createBitmap())
 
+        val resultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            result ->
+            if (result.resultCode == Activity.RESULT_OK) currentImage.setImageURI(result.data?.data)
+        }
+
         button.setOnClickListener {
-            val gallery = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-            startActivityForResult(gallery, pickImage)
-
+            resultLauncher.launch(Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI))
         }
 
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (resultCode == RESULT_OK && requestCode == pickImage) {
-            imageUri = data?.data
-            currentImage.setImageURI(imageUri)
-        }
     }
 
     private fun bindViews() {
         currentImage = findViewById(R.id.ivPhoto)
+
     }
 
     // do not change this function
